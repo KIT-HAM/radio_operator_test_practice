@@ -294,11 +294,12 @@ function main():int{
 			}
 			$u->append_row($mode, ['date'=>date('Y/m/d H:i'),'user_id'=>$user_data['id'],'name'=>$user_data['name'],'pointA'=>$pointA*5,'pointB'=>$pointB*5]);
 		} elseif ($submit === 'morse'){
+			$point = 0;
 			for ($i = 0; $i < 10; ++$i){
 				if (!isset($_POST['prb'.$i], $_POST['ans'.$i])){
 					$conf->form_die();
 				}
-				for ($i = 0, $point = 0; $i < 10; ++$i){
+				for ($i = 0;$i < 10;++$i){
 					$p = str_replace('.', '・', str_replace('-', 'ー', str_replace(' ', '　', h($_POST['prb'.$i]))));
 					$a = mors_decode($p);
 					$replace['PROBLEM_LIST'] .= '<p>('.$i +1 .')'.$p.'<audio preload="auto" loading="auto" decoding="async" src="data:audio/wav;base64,'.base64_encode(create_wav_from_mors($p)).'" controls></audio></p><p>解答 '.$a.'</p>';
@@ -312,15 +313,15 @@ function main():int{
 				$replace['PROBLEM_LIST'] = '<p>得点: '.$point*10 .'点</p>'.$replace['PROBLEM_LIST'];
 				$replace['NEXT_LINK'] = '<a href="./">メニューに戻る</a>　<a href="?Mode=morse">もう一回やる</a>';
 			}
+			$u = new GakuUraSQL('sqlite', $practice_dir.'/points.db');
+			if(!$u->table_exists($mode)) $u->make_table($mode,['date'=>'TEXT NOT NULL','user_id'=>'INTEGER NOT NULL DEFAULT 0','name'=>'TEXT NOT NULL DEFAULT 不明','point'=>'INTEGER NOT NULL']);
+			if ($login_data['result']){
+				$user_data = $login_data['user_data'];
+			} else {
+				$user_data = ['id'=>0,'name'=>get_ip()];
+			}
+			$u->append_row($mode, ['date'=>date('Y/m/d H:i'),'user_id'=>$user_data['id'],'name'=>$user_data['name'],'point'=>$point*10]);
 		}
-		$u = new GakuUraSQL('sqlite', $practice_dir.'/points.db');
-		if(!$u->table_exists($mode)) $u->make_table($mode,['date'=>'TEXT NOT NULL','user_id'=>'INTEGER NOT NULL DEFAULT 0','name'=>'TEXT NOT NULL DEFAULT 不明','point'=>'INTEGER NOT NULL']);
-		if ($login_data['result']){
-			$user_data = $login_data['user_data'];
-		} else {
-			$user_data = ['id'=>0,'name'=>get_ip()];
-		}
-		$u->append_row($mode, ['date'=>date('Y/m/d H:i'),'user_id'=>$user_data['id'],'name'=>$user_data['name'],'point'=>$point*10]);
 	} elseif ($mode == 'normal'){
 		$problemA_table = '';
 		$problemA = '';
